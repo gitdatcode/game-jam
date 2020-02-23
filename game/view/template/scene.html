@@ -1,0 +1,11 @@
+<p>{{ scene['content'] }}</h1>
+{% if len(scene['Options']) %}
+    <ul>
+    {% for option in scene['Options'] %}
+        <li>
+            {% set href = '/scene/{}'.format(option['next_scene']) %}
+            <a href="{{ href }}">{{ option['text'] }}</a>
+        </li>
+    {% end %}
+    </ul>
+{% end %}

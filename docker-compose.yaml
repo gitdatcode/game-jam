@@ -1,0 +1,10 @@
+version: '3.3'
+
+services:
+    db:
+        image:
+            'bitnami/mariadb:latest'
+        environment:
+            - ALLOW_EMPTY_PASSWORD=yes
+        ports:
+            - '3306:3306'
