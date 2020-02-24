@@ -56,28 +56,28 @@ class Scene(BaseModel):
         """this should collect the scene, its options, and all of the options'
         scene's image and audio assets to allow the front-end to preload them
         """
-        next_scenes = []
+        next_scenes = set()
         data = super().data
         data['preload'] = {
-            'images': [],
-            'audio': [],
+            'images': set(),
+            'audio': set(),
         }
         data['Options'] = []
 
-        if 'image' in data and data['image'] is not None:
-            data['preload']['images'].append(data['image'])
+        if self.image:
+            data['preload']['images'].add(self.image)
 
-        if 'image_mobile' in data and data['image_mobile'] is not None:
-            data['preload']['images'].append(data['image_mobile'])
+        if self.image_mobile:
+            data['preload']['images'].add(self.image_mobile)
 
-        if 'sound_load' in data and data['sound_load'] is not None:
-            data['preload']['audio'].append(data['sound_load'])
+        if self.sound_load:
+            data['preload']['audio'].add(self.sound_load)
 
-        if 'sound_unload' in data and data['sound_unload'] is not None:
-            data['preload']['audio'].append(data['sound_unload'])
+        if self.sound_unload:
+            data['preload']['audio'].add(self.sound_unload)
 
-        if 'sound_background' in data and data['sound_background'] is not None:
-            data['preload']['audio'].append(data['sound_background'])
+        if self.sound_background:
+            data['preload']['audio'].add(self.sound_background)
 
         options = (SceneOption
                    .select()
@@ -88,7 +88,7 @@ class Scene(BaseModel):
             data['Options'].append(option.data)
 
             if option.next_scene:
-                next_scenes.append(option.next_scene)
+                next_scenes.add(option.next_scene)
 
         if next_scenes:
             ns = Scene.select().where(Scene.id.in_(next_scenes))\
@@ -96,19 +96,19 @@ class Scene(BaseModel):
 
             for scene in ns:
                 if scene.image:
-                    data['preload']['images'].append(scene.image)
+                    data['preload']['images'].add(scene.image)
 
                 if scene.image_mobile:
-                    data['preload']['images'].append(scene.image_mobile)
+                    data['preload']['images'].add(scene.image_mobile)
 
                 if scene.sound_load:
-                    data['preload']['audio'].append(scene.sound_load)
+                    data['preload']['audio'].add(scene.sound_load)
 
                 if scene.sound_unload:
-                    data['preload']['audio'].append(scene.sound_unload)
+                    data['preload']['audio'].add(scene.sound_unload)
 
                 if scene.sound_background:
-                    data['preload']['audio'].append(scene.sound_background)
+                    data['preload']['audio'].add(scene.sound_background)
 
         return data
 
