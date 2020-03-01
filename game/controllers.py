@@ -10,13 +10,18 @@ class BaseController(web.RequestHandler):
         return ('X-Requested-With' in self.request.headers and
             self.request.headers['X-Requested-With'] == 'XMLHttpRequest')
 
+    def page(self, title, content):
+        page = self.render_string('page.html', title=title, content=content)
+
+        return self.write(page)
+
 
 class IndexController(BaseController):
 
     def get(self):
         home = self.render_string('index.html')
 
-        return self.write(home)
+        return self.page(title='**INDEXPAGE', content=home)
 
 
 class StoryController(BaseController):
@@ -29,7 +34,8 @@ class StoryController(BaseController):
             story = Story.select().where(Story.id == story_id).get()
 
         page = self.render_string('story.html', story=story)
-        self.write(page)
+
+        return self.page(title='**STORYPAGE', content=page)
 
 
 class SceneController(BaseController):
@@ -37,16 +43,16 @@ class SceneController(BaseController):
     def get(self, scene_id):
         scene = Scene.select().where(Scene.id == scene_id).get()
         content = self.render_string('scene.html', scene=scene.data)
-        print(scene.data)
+
         if self.is_ajax:
             resp = {
-                'content': content,
-                'scent': scene,
+                'content': content.decode('utf-8'),
+                'scene': scene.data,
             }
 
             return self.write(resp)
 
-        return self.write(content)
+        return self.page(title='**SCENEPAGE', content=content)
 
 
 class ErrorHandler:

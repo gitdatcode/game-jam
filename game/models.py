@@ -110,6 +110,10 @@ class Scene(BaseModel):
                 if scene.sound_background:
                     data['preload']['audio'].add(scene.sound_background)
 
+        # fix sets so that data can be serialized
+        data['preload']['images'] = list(data['preload']['images'])
+        data['preload']['audio'] = list(data['preload']['audio'])
+
         return data
 
 
