@@ -5,7 +5,7 @@
         loaded_scenes = {};
 
     function loadImage(src, callback){
-        console.log('loading image', src)
+        console.info('loading image', src)
         var idx = loaded_images.indexOf(src);
 
         if(idx > -1){
@@ -17,7 +17,7 @@
     }
 
     function loadAudio(src, callback){
-        console.log('loading audio', src)
+        console.info('loading audio', src)
         var idx = loaded_audio.indexOf(src);
 
         if(idx > -1){
@@ -41,15 +41,31 @@
             href: href,
             content: scene,
 
-            load: function(){
+            load: function(callback){
+                callback = callback || function(){};
+                var cb = function(){
+                        this.playAudioBackground();
+                        callback();
+                    }.bind(this);
+
                 this.show()
                     .preloadAssets()
-                    .playAudioIntro(this.playAudioBackground.bind(this));
+                    .playAudioIntro(cb);
+
+                return this;
             },
 
-            unload: function(){
+            unload: function(callback){
+                callback = callback || function(){};
+                var cb = function(){
+                        this.stopAllAudio(s);
+                        callback();
+                    }.bind(this);
+
                 this.hide()
-                    .playAudioOutro(this.stopAllAudio.bind(this));
+                    .playAudioOutro(cb);
+
+                return this;
             },
 
             show: function(){
@@ -87,8 +103,9 @@
             },
 
             playAudioIntro: function(callback){
-                if(audio_intro){
-
+                if(audio_intro.length){
+                    audio_intro[0].addEventListener('ended', callback);
+                    audio_intro[0].play();
                 }else{
                     callback();
                 }
@@ -97,15 +114,17 @@
             },
 
             playAudioBackground: function(){
-                if(audio_background){
-                    
+                if(audio_background.length){
+                    audio_background[0].attr('loop', true);
+                    audio_background[0].play();
                 }
 
                 return this;
             },
 
             playAudioOutro: function(callback){
-                if(audio_outro){
+                if(audio_outro.length){
+                    audio_outro[0].play();
                 }
 
                 callback();
@@ -114,24 +133,24 @@
             },
 
             stopAudioIntro: function(){
-                if(audio_intro){
-                    audio_intro.stop();
+                if(audio_intro.length){
+                    audio_intro[0].stop();
                 }
 
                 return this;
             },
 
             stopAudioBackground: function(){
-                if(audio_background){
-                    audio_background.stop();
+                if(audio_background.length){
+                    audio_background[0].stop();
                 }
 
                 return this;
             },
 
             stopAudioOutro: function(){
-                if(audio_outro){
-                    audio_outro.stop();
+                if(audio_outro.length){
+                    audio_outro[0].stop();
                 }
 
                 return this;
@@ -145,13 +164,11 @@
                 return this;
             }
         };
+
         scene_option.on('click', function(e){
             e.preventDefault();
-
             game.loadScene(this.href);
         });
-        console.log('>>>>>', scene, scene_option, '{{{{{{{')
-        console.log(scene_option[0], jQuery._data(scene_option[0], "events" ));
 
         return instance;
     }
@@ -167,8 +184,8 @@
             };
 
         function loadTheScene(scene){
-            console.log("loading", scene);
-            // debugger
+            console.info('loading scene ', scene.href);
+
             if(active_scene.href != scene.href){
                 if(active_scene){
                     active_scene.unload();
