@@ -58,7 +58,7 @@
             unload: function(callback){
                 callback = callback || function(){};
                 var cb = function(){
-                        this.stopAllAudio(s);
+                        this.stopAllAudio();
                         callback();
                     }.bind(this);
 
@@ -134,7 +134,7 @@
 
             stopAudioIntro: function(){
                 if(audio_intro.length){
-                    audio_intro[0].stop();
+                    audio_intro[0].pause();
                 }
 
                 return this;
@@ -142,7 +142,7 @@
 
             stopAudioBackground: function(){
                 if(audio_background.length){
-                    audio_background[0].stop();
+                    audio_background[0].pause();
                 }
 
                 return this;
@@ -150,7 +150,7 @@
 
             stopAudioOutro: function(){
                 if(audio_outro.length){
-                    audio_outro[0].stop();
+                    audio_outro[0].pause();
                 }
 
                 return this;

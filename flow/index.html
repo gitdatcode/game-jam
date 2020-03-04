@@ -1,0 +1,74 @@
+<html lang="en">
+    <head>
+        <meta charset='utf-8'>
+        <meta http-equiv="X-UA-Compatible" content="chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <title>GameJam Flow Chart</title>
+        <script src="./js/raphael.js"></script>
+        <script src="./js/flowchart.js"></script>
+        <style>
+            .wrapper{
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .left {
+                grid-column: 1 / 2;
+            }
+                .left textarea {
+                    width: 100%;
+                    height: 90vh;
+                }
+            .right {
+                grid-column: 2 / 5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wrapper">
+            <div class="left">
+                <textarea id="code">
+st=>start: Start:>http://www.google.com[blank]
+e=>end:>http://www.google.com
+op1=>operation: My Operation
+sub1=>subroutine: My Subroutine
+cond=>condition: Yes
+or No?:>http://www.google.com
+io=>inputoutput: catch something...
+para=>parallel: parallel tasks
+
+st->op1->cond
+cond(yes)->io->e
+cond(no)->para
+para(path1, bottom)->sub1(right)->op1
+para(path2, top)->op1
+                </textarea>
+                <button id="update">update</button>
+            </div>
+
+            <div class="right">
+                <div id="diagram"></div>
+            </div>
+        </div>
+
+        <script>
+            var code = document.getElementById("code"),
+                update = document.getElementById('update'),
+                diagram;
+
+            update.onclick = function(){
+                if(diagram){
+                    diagram.clean();
+                }
+
+                draw();
+            }
+
+            function draw(){
+                diagram = flowchart.parse(code.value);
+                diagram.drawSVG('diagram');
+            }
+
+            draw();
+        </script>
+    </body>
+</html>

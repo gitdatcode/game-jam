@@ -1,7 +1,9 @@
-from controllers import (IndexController, StoryController, SceneController)
+from controllers import (IndexController, LoginController, StoryController,
+    SceneController)
 
 ROUTES = (
     (r'/', IndexController),
-    (r'/story/([\w\-]+)', StoryController),
-    (r'/scene/([\w\-]+)', SceneController),
+    (r'/login', LoginController),
+    (r'/story(?:/([\w\-]+)?)?', StoryController),
+    (r'/option/([\w\-]+)/scene/([\w\-]+)', SceneController),
 )

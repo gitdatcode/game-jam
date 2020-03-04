@@ -32,6 +32,8 @@ define('autoreload', True if ENVIRONMENT in debug else False)
 define('ports', [8877])
 define('static_path', os.path.join(HERE, 'view', 'static'))
 define('template_path', os.path.join(HERE, 'view', 'template'))
+define('user_cookie_name', 'u')
+define('user_game_name', 'ug')
 
 
 # database config

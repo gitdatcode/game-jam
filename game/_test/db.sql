@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.5.5-10.3.22-MariaDB)
 # Database: game_jam
-# Generation Time: 2020-03-01 16:09:13 +0000
+# Generation Time: 2020-03-01 16:20:47 +0000
 # ************************************************************
 
 
@@ -61,7 +61,9 @@ LOCK TABLES `scene` WRITE;
 INSERT INTO `scene` (`id`, `story_id`, `title`, `content`, `order`, `image`, `image_mobile`, `sound_load`, `sound_unload`, `sound_background`, `css`, `js`)
 VALUES
 	(1,1,'first scene','this is the first scene. it has three options',0,'image1',NULL,'/static/audio/sound1',NULL,NULL,NULL,NULL),
-	(2,1,'second scene','sescene',0,'image2	',NULL,'/static/audio/sound2',NULL,NULL,NULL,NULL);
+	(2,1,'second scene','sescene',0,'image2	',NULL,'/static/audio/sound2',NULL,NULL,NULL,NULL),
+	(3,1,'end scene','this is the end',0,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+	(4,1,'third scene','this is third scene',0,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 
 /*!40000 ALTER TABLE `scene` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -91,9 +93,10 @@ LOCK TABLES `sceneoption` WRITE;
 INSERT INTO `sceneoption` (`id`, `scene_id`, `order`, `text`, `tool_tip`, `value`, `next_scene`)
 VALUES
 	(1,1,0,'option one',NULL,1,2),
-	(2,2,0,'option two',NULL,2,0),
-	(3,1,2,'option two',NULL,4,0),
-	(4,1,1,'three	',NULL,4,0);
+	(2,2,0,'option two',NULL,2,3),
+	(3,1,2,'---> end',NULL,4,3),
+	(4,1,1,'three	',NULL,4,4),
+	(5,4,1,'go to end',NULL,0,3);
 
 /*!40000 ALTER TABLE `sceneoption` ENABLE KEYS */;
 UNLOCK TABLES;

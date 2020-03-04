@@ -1,0 +1,7 @@
+<h1>select a story</h1>
+<ul>
+    {% for story in stories %}
+        {% set href = '/story/{}'.format(story.eyed) %}
+        <li><a href="{{ href }}">{{ story.title }}</a></li>
+    {% end %}
+</ul>

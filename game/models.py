@@ -1,3 +1,7 @@
+from uuid import uuid4
+import hashlib
+from datetime import datetime
+
 from tornado.options import options
 
 import peeweedbevolve
@@ -15,6 +19,10 @@ def database():
 DATABASE = database()
 
 
+def _uid_():
+    return str(uuid4()).replace('-', '')
+
+
 class BaseModel(Model):
     __recurse_data_relationships__ = False
 
@@ -29,6 +37,7 @@ class BaseModel(Model):
 
 class Story(BaseModel):
     id = AutoField()
+    eyed = CharField(unique=True, default=_uid_)
     title = CharField()
     description = TextField()
     image = TextField(null=True)
@@ -39,10 +48,14 @@ class Story(BaseModel):
 
 class Scene(BaseModel):
     id = AutoField()
+    eyed = CharField(unique=True, default=_uid_)
     story = ForeignKeyField(Story, backref='scenes')
+    done_scene = ForeignKeyField('self', null=True)
     title = CharField(null=True)
     content = TextField()
     order = IntegerField(default=0)
+    start_scene = BooleanField(default=False)
+    end_scene = BooleanField(default=False)
     image = TextField(null=True)
     image_mobile = TextField(null=True)
     sound_load = TextField(null=True)
@@ -116,6 +129,28 @@ class Scene(BaseModel):
 
         return data
 
+    def data_from_user(self, user, game):
+        """this method will figure out which options the user has already seen
+        if there are no options left, the scene's done_scene is chcked,
+        if that doesnt exist, the game's end scene is returned"""
+        data = self.data
+        options_seen = game.options_seen.split(',')
+        fixed_opitons = []
+
+        for option in data['Options']:
+            if option['id'] not in options_seen:
+                fixed_options.append(option)
+
+        if len(fixed_options) == 0 and not self.end_scene:
+            if self.done_scene:
+                done = Scene.select(Scene.id==self.done_scene).get()
+                return done.data_from_user(user, game)
+            else:
+                pass
+
+        data['Options'] = fixed_options
+        return data
+
 
 class SceneOption(BaseModel):
     id = AutoField()
@@ -127,8 +162,25 @@ class SceneOption(BaseModel):
     next_scene = IntegerField()
 
 
+class User(BaseModel):
+    id = AutoField()
+    username = CharField(unique=True)
+    password = TextField()
+
+
+class UserGame(BaseModel):
+    id = AutoField()
+    user = ForeignKeyField(User)
+    story = ForeignKeyField(Story)
+    last_scene = TextField(null=True)
+    options_seen = TextField(default='')
+    date_created = DateTimeField(default=datetime.now())
+    date_update = TimestampField()
+    date_completed = DateTimeField(null=True)
+
+
 def create_tables():
-    tables = [Story, Scene, SceneOption]
+    tables = [Story, Scene, SceneOption, User, UserGame]
 
     DATABASE.connect()
     DATABASE.create_tables(tables)
