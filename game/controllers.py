@@ -4,7 +4,7 @@ import hashlib
 from tornado import web
 
 from config import options
-from models import Story, Scene, User, UserGame
+from models import Story, Scene, SceneOption, User, UserGame
 
 
 def loggedin(method):
@@ -148,20 +148,30 @@ class LoginController(BaseController):
 class StoryController(BaseController):
 
     @loggedin
-    def get(self, story_eyed=None):
+    def get(self, story_eyed=None, user_game_id=None):
         # if there is no story_id render the story select page
+        user = self.session_user
+
         if story_eyed:
-            user = self.session_user
             story = Story.select().where(Story.eyed==story_eyed).get()
             scene = Scene.select().where(Scene.story==story,
                 Scene.start_scene==True).get()
-            user_game, _ = UserGame.get_or_create(user=user, story=story)
             page = self.render_string('story.html', story=story, scene=scene)
+
+            try:
+                if user_game_id is not None:
+                    user_game = (UserGame.select()
+                        .where(UserGame.id==user_game_id).get())
+                else:
+                    raise
+            except:
+                user_game = UserGame.create(user=user, story=story)
+
             self.set_game(user_game)
 
             return self.page(title='**STORYPAGE', content=page)
 
-        stories = Story.select()
+        stories = Story.get_user_stories(user_id=user.id)
         page = self.render_string('story_select.html', stories=stories)
 
         return self.page(title='*******SELECT STORY', content=page)
@@ -170,25 +180,31 @@ class StoryController(BaseController):
 class SceneController(BaseController):
 
     @loggedin
-    def get(self, option_eyed, scene_eyed):
+    def get(self, option_eyed, scene_eyed, game_id=None):
+        if game_id is not None:
+            try:
+                game = UserGame.select().where(UserGame.id==game_id).get()
+                self.set_game(game)
+            except:
+                pass
+
+        option = None
         scene = Scene.select().where(Scene.eyed == scene_eyed).get()
-        content = self.render_string('scene.html', scene=scene.data)
         user_game = self.session_game
+        user = self.session_user
 
-        if user_game.options_seen:
-            seen = user_game.options_seen.split(',').append(scene.eyed)
-        else:
-            seen = [scene.eyed,]
+        if option_eyed and option_eyed not in ['0', '-']:
+            option = SceneOption.select().where(
+                SceneOption.eyed==option_eyed).get()
+            user_game.add_last_seen(option, scene)
 
-        seen = ','.join(seen)
-        user_game.options_seen = seen
-        user_game.last_scene = scene.eyed
-        user_game.save()
+        data = scene.data_from_user(user, user_game)
+        content = self.render_string('scene.html', scene=data)
 
         if self.is_ajax:
             resp = {
                 'content': content.decode('utf-8'),
-                'scene': scene.data,
+                'scene': data,
             }
 
             return self.write(resp)
@@ -196,5 +212,8 @@ class SceneController(BaseController):
         return self.page(title='**SCENEPAGE', content=content)
 
 
-class ErrorHandler:
-    pass
+class ErrorHandler(BaseController):
+
+    def get(self, *args, **kwargs):
+        import pudb; pu.db
+

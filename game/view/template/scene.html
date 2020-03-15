@@ -21,7 +21,7 @@
         <ul class="scene_options">
         {% for option in scene['Options'] %}
             <li>
-                {% set href = '/scene/{}'.format(option['next_scene']) %}
+                {% set href = '/option/{}/scene/{}'.format(option['eyed'], option['next_scene']) %}
                 <a href="{{ href }}" class="scene_option">{{ option['text'] }}</a>
             </li>
         {% end %}

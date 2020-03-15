@@ -45,6 +45,28 @@ class Story(BaseModel):
     sound_background = TextField(null=True)
     active = BooleanField(default=True)
 
+    @classmethod
+    def get_user_stories(cls, user_id):
+        stories = Story.select()
+        data = []
+
+        for story in stories:
+            story_data = story.data
+
+            try:
+                ug = (UserGame.select().where(UserGame.story==story,
+                    UserGame.user_id==user_id)
+                    .order_by(UserGame.date_created.desc(),
+                        UserGame.date_completed.desc()))
+                user_games = [us.data for us in ug]
+            except:
+                user_games = []
+
+            story_data['UserGames'] = user_games
+            data.append(story_data)
+
+        return data
+
 
 class Scene(BaseModel):
     id = AutoField()
@@ -135,18 +157,21 @@ class Scene(BaseModel):
         if that doesnt exist, the game's end scene is returned"""
         data = self.data
         options_seen = game.options_seen.split(',')
-        fixed_opitons = []
+        fixed_options = []
 
         for option in data['Options']:
-            if option['id'] not in options_seen:
+            if option['eyed'] not in options_seen:
                 fixed_options.append(option)
 
         if len(fixed_options) == 0 and not self.end_scene:
             if self.done_scene:
-                done = Scene.select(Scene.id==self.done_scene).get()
+                done = Scene.select().where(Scene.id==self.done_scene).get()
                 return done.data_from_user(user, game)
             else:
-                pass
+                end = Scene.select().where(Scene.story==game.story,
+                    Scene.end_scene==True).get()
+
+                return end.data
 
         data['Options'] = fixed_options
         return data
@@ -154,12 +179,13 @@ class Scene(BaseModel):
 
 class SceneOption(BaseModel):
     id = AutoField()
+    eyed = CharField(unique=True, default=_uid_)
     scene = ForeignKeyField(Scene, backref='options')
     order = IntegerField(default=0)
     text = TextField()
     tool_tip = TextField(null=True)
     value = FloatField(default=0)
-    next_scene = IntegerField()
+    next_scene = CharField()
 
 
 class User(BaseModel):
@@ -174,10 +200,59 @@ class UserGame(BaseModel):
     story = ForeignKeyField(Story)
     last_scene = TextField(null=True)
     options_seen = TextField(default='')
+    options_score = TextField(default='')
     date_created = DateTimeField(default=datetime.now())
     date_update = TimestampField()
     date_completed = DateTimeField(null=True)
 
+    def add_last_seen(self, option, scene):
+        seen = [] if not self.options_seen else self.options_seen.split(',')
+
+        if option.id not in seen:
+            self.add_score(option)
+            seen.append(option.eyed)
+
+        seen = ','.join(seen)
+        self.options_seen = seen
+        self.last_scene = scene.eyed
+        self.save()
+
+    def add_score(self, option):
+        seen = [] if not self.options_seen else self.options_seen.split(',')
+        score = [] if not self.options_score else self.options_score.split(',')
+
+        if option.id not in seen and option.value is not None:
+            score.append(str(option.value))
+
+            self.options_score = ','.join(score)
+            self.save()
+
+    @property
+    def score(self):
+        try:
+            scores = map(float, self.options_score.split(','))
+
+            return sum(scores)
+        except:
+            return 0
+
+    @property
+    def data(self):
+        data = super().data
+        data['Score'] = self.score
+
+        try:
+            data['LastScene'] = (Scene.select()
+                .where(Scene.eyed==self.last_scene).get().data)
+        except:
+            data['LastScene'] = None
+
+        try:
+            data['LastOption'] = self.options_seen.split(',')[-1]
+        except:
+            data['LastOption'] = None
+
+        return data
 
 def create_tables():
     tables = [Story, Scene, SceneOption, User, UserGame]

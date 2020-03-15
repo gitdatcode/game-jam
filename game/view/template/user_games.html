@@ -1,0 +1,40 @@
+{% if len(user_games) > 0%}
+    <table>
+        <thead>
+            <tr>
+                <td>Started</td>
+                <td>Completed</td>
+                <td>Last Scene</td>
+                <td>Score</td>
+                <td></td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for game in user_games %}
+                {% if game['date_completed'] is not None %}
+                    {% set date_completed = game['date_completed'] %}
+                {% else %}
+                    {% set date_completed = '-' %}
+                {% end %}
+
+                {% if game['LastScene'] is not None %}
+                    {% set cont_href = '/option/{}/scene/{}/game/{}'.format(game['LastOption'], game['LastScene']['eyed'], game['id']) %}
+                {% else %}
+                    {% set cont_href = '/story/{}/game/{}'.format(story_eyed, game['id']) %}
+                {% end %}
+
+                <tr>
+                    <td>{{ game['date_created'] }}</td>
+                    <td>{{ date_completed }}</td>
+                    <td>{{ game['LastScene']['title'] if game['LastScene'] else '' }} </td>
+                    <td>{{ game['Score'] }}</td>
+                    <td>
+                        {% if cont_href  is not None %}
+                            <a href="{{ cont_href }}">continue</a>
+                        {% end %}
+                    </td>
+                </tr>
+            {% end %}
+        </tbody>
+    </table>
+{% end %}
