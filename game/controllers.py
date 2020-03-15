@@ -84,6 +84,10 @@ class BaseController(web.RequestHandler):
     def set_game(self, user_game):
         self.set_secure_cookie(options.user_game_name, str(user_game.id))
 
+    def unset_game(self):
+        return
+        self.clear_cookie(options.user_game_name)
+
     def continue_game(self):
         user = self.session_user
 
@@ -139,6 +143,7 @@ class LoginController(BaseController):
                 invalid = ['invalid username/password combo',]
                 return self.get(errors=invalid)
 
+            self.unset_game()
             self.login(user.id)
         except:
             # create a user
@@ -152,6 +157,7 @@ class StoryController(BaseController):
     @loggedin
     def get(self, story_eyed=None, user_game_id=None):
         # if there is no story_id render the story select page
+        self.unset_game()
         user = self.session_user
 
         if story_eyed:
@@ -212,6 +218,7 @@ class SceneController(BaseController):
 
         if scene.end_scene:
             user_game.date_completed = datetime.now()
+            user_game.save()
 
         if self.is_ajax:
             resp = {

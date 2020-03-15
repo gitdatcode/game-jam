@@ -256,6 +256,7 @@ class UserGame(BaseModel):
 
         return data
 
+
 def create_tables():
     tables = [Story, Scene, SceneOption, User, UserGame]
 

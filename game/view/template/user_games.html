@@ -17,7 +17,7 @@
                 {% else %}
                     {% set date_completed = '-' %}
 
-                    {% if game['LastScene'] is not None %}
+                    {% if game['LastScene'] is not None and game['LastOption'] %}
                         {% set cont_href = '/option/{}/scene/{}/game/{}'.format(game['LastOption'], game['LastScene']['eyed'], game['id']) %}
                     {% else %}
                         {% set cont_href = '/story/{}/game/{}'.format(story_eyed, game['id']) %}
