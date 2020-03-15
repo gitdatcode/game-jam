@@ -56,8 +56,8 @@ class Story(BaseModel):
             try:
                 ug = (UserGame.select().where(UserGame.story==story,
                     UserGame.user_id==user_id)
-                    .order_by(UserGame.date_created.desc(),
-                        UserGame.date_completed.desc()))
+                    .order_by(UserGame.date_completed.asc(),
+                        UserGame.date_created.desc()))
                 user_games = [us.data for us in ug]
             except:
                 user_games = []
@@ -170,6 +170,8 @@ class Scene(BaseModel):
             else:
                 end = Scene.select().where(Scene.story==game.story,
                     Scene.end_scene==True).get()
+                game.date_completed = datetime.now()
+                game.save()
 
                 return end.data
 
@@ -208,7 +210,7 @@ class UserGame(BaseModel):
     def add_last_seen(self, option, scene):
         seen = [] if not self.options_seen else self.options_seen.split(',')
 
-        if option.id not in seen:
+        if option.eyed not in seen:
             self.add_score(option)
             seen.append(option.eyed)
 
@@ -221,7 +223,7 @@ class UserGame(BaseModel):
         seen = [] if not self.options_seen else self.options_seen.split(',')
         score = [] if not self.options_score else self.options_score.split(',')
 
-        if option.id not in seen and option.value is not None:
+        if option.eyed not in seen and option.value is not None:
             score.append(str(option.value))
 
             self.options_score = ','.join(score)

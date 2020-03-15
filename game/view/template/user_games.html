@@ -13,14 +13,15 @@
             {% for game in user_games %}
                 {% if game['date_completed'] is not None %}
                     {% set date_completed = game['date_completed'] %}
+                    {% set cont_href = None %}
                 {% else %}
                     {% set date_completed = '-' %}
-                {% end %}
 
-                {% if game['LastScene'] is not None %}
-                    {% set cont_href = '/option/{}/scene/{}/game/{}'.format(game['LastOption'], game['LastScene']['eyed'], game['id']) %}
-                {% else %}
-                    {% set cont_href = '/story/{}/game/{}'.format(story_eyed, game['id']) %}
+                    {% if game['LastScene'] is not None %}
+                        {% set cont_href = '/option/{}/scene/{}/game/{}'.format(game['LastOption'], game['LastScene']['eyed'], game['id']) %}
+                    {% else %}
+                        {% set cont_href = '/story/{}/game/{}'.format(story_eyed, game['id']) %}
+                    {% end %}
                 {% end %}
 
                 <tr>

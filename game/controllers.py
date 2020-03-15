@@ -1,6 +1,8 @@
 import functools
 import hashlib
 
+from datetime import datetime
+
 from tornado import web
 
 from config import options
@@ -192,14 +194,24 @@ class SceneController(BaseController):
         scene = Scene.select().where(Scene.eyed == scene_eyed).get()
         user_game = self.session_game
         user = self.session_user
+        data = scene.data_from_user(user, user_game)
+        content = self.render_string('scene.html', scene=data)
+
+        # requery the scene because it could be different than what was 
+        # passed into this method
+        if scene_eyed != data['eyed']:
+            scene = Scene.select().where(Scene.eyed==data['eyed']).get()
 
         if option_eyed and option_eyed not in ['0', '-']:
             option = SceneOption.select().where(
                 SceneOption.eyed==option_eyed).get()
             user_game.add_last_seen(option, scene)
+        else:
+            user_game.last_scene = scene.eyed
+            user_game.save()
 
-        data = scene.data_from_user(user, user_game)
-        content = self.render_string('scene.html', scene=data)
+        if scene.end_scene:
+            user_game.date_completed = datetime.now()
 
         if self.is_ajax:
             resp = {
